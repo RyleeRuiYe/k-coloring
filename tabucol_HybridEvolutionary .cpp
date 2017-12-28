@@ -11,36 +11,36 @@ using namespace std;
 ifstream fin("DSJC500.5.txt");
 ofstream fout("output.txt");
 
-int Final_Colornum;//×îÖÕÑÕÉ«Êı
-int Colornum; //ÑÕÉ«×ÜÊı
+int Final_Colornum;//æœ€ç»ˆé¢œè‰²æ•°
+int Colornum; //é¢œè‰²æ€»æ•°
 int Iter1, Iter2, Iter3;
 int *Conflictnum;
 int Unsuccess1, Unsuccess2;
-int Conflict, Conflict_best;//×î¼Ñ³åÍ»±ßÊı
-int N, E; // ½ÚµãÊıºÍ±ßÊı
-int **Graph; //¶şÎ¬Êı×é´æ´¢Í¼
-int **Adjac; //ÁÚ½Ó±í
-int *Adjaclen; //ÁÚ½Ó±í³¤¶È
-int **Color; //½ÚµãµÄµ±Ç°ÑÕÉ«
-int **Opt; //½ÚµãÑÕÉ«±ä»¯µÄÓÅ»¯±í
-int **Tabu; //½û¼É±í
-int *NewColor;//ÔÓ½»²úÉúµÄĞÂ×Ó´ú
+int Conflict, Conflict_best;//æœ€ä½³å†²çªè¾¹æ•°
+int N, E; // èŠ‚ç‚¹æ•°å’Œè¾¹æ•°
+int **Graph; //äºŒç»´æ•°ç»„å­˜å‚¨å›¾
+int **Adjac; //é‚»æ¥è¡¨
+int *Adjaclen; //é‚»æ¥è¡¨é•¿åº¦
+int **Color; //èŠ‚ç‚¹çš„å½“å‰é¢œè‰²
+int **Opt; //èŠ‚ç‚¹é¢œè‰²å˜åŒ–çš„ä¼˜åŒ–è¡¨
+int **Tabu; //ç¦å¿Œè¡¨
+int *NewColor;//æ‚äº¤äº§ç”Ÿçš„æ–°å­ä»£
 int *BestColor;
 
-//³õÊ¼»¯ ÎŞÏòÍ¼£¨¶şÎ¬Êı×é´æ´¢ ¶¥µãÊı¾ö¶¨ÓĞ¶à´ó£¬±ß¼ÇÎª1£©
-//³õÊ¼»¯ ÁÚ½Ó±í£¨¶şÎ¬Êı×é´æ´¢ÏàÁÚ¶¥µãºÅ Ò»Î¬Êı×é´æ´¢ÏàÁÚ½Úµã¸öÊı Í¨¹ı±ßĞÅÏ¢²úÉú£©
+//åˆå§‹åŒ– æ— å‘å›¾ï¼ˆäºŒç»´æ•°ç»„å­˜å‚¨ é¡¶ç‚¹æ•°å†³å®šæœ‰å¤šå¤§ï¼Œè¾¹è®°ä¸º1ï¼‰
+//åˆå§‹åŒ– é‚»æ¥è¡¨ï¼ˆäºŒç»´æ•°ç»„å­˜å‚¨ç›¸é‚»é¡¶ç‚¹å· ä¸€ç»´æ•°ç»„å­˜å‚¨ç›¸é‚»èŠ‚ç‚¹ä¸ªæ•° é€šè¿‡è¾¹ä¿¡æ¯äº§ç”Ÿï¼‰
 void initialization()
 {
 	char ch;
 	int i, j;
-//	cout << "ÇëÊäÈë¶¥µãÊı ±ßÊı£º" << endl;
+//	cout << "è¯·è¾“å…¥é¡¶ç‚¹æ•° è¾¹æ•°ï¼š" << endl;
 	//cin >> N >> E;
 	fin >> N >> E;
 	Graph = new int *[N + 2];
 	Adjac = new int *[N + 2];
 	Adjaclen = new int[N + 2];
 	Color = new int *[POP + 2];
-	Conflictnum = new int[POP + 2];//º¯Êı
+	Conflictnum = new int[POP + 2];//å‡½æ•°
 	Opt = new int *[N + 2];
 	Tabu = new int *[N + 2];
 	NewColor = new int[N + 2];
@@ -56,18 +56,18 @@ void initialization()
 		Adjaclen[i] = 0;
 	}
 
-	//¶şÎ¬Êı×é´æ´¢ ÁÚ½Ó±í ³õÊ¼»¯Îª0
+	//äºŒç»´æ•°ç»„å­˜å‚¨ é‚»æ¥è¡¨ åˆå§‹åŒ–ä¸º0
 	for (i = 0; i < N; ++i)
 		for (j = 0; j < N; ++j)
 		{
 			Graph[i][j] = 0;
 			Adjac[i][j] = 0;
 		}
-	//´´½¨ÁÚ½Ó±í ºÍ Í¼ĞÎ±í
+	//åˆ›å»ºé‚»æ¥è¡¨ å’Œ å›¾å½¢è¡¨
 	for (i = 1; i <= E; ++i)
 	{
-		int a, b; //ÓĞ¹ØÏµµÄÁ½¸öµã
-//		cout << "ÇëÊäÈë£º×Ö·û ÓĞ³åÍ»Á½µãµÄ¶¥µãºÅ" << endl;
+		int a, b; //æœ‰å…³ç³»çš„ä¸¤ä¸ªç‚¹
+//		cout << "è¯·è¾“å…¥ï¼šå­—ç¬¦ æœ‰å†²çªä¸¤ç‚¹çš„é¡¶ç‚¹å·" << endl;
 		//cin >> ch >> a >> b;
 		fin >> ch >> a >> b;
 		a--;
@@ -81,15 +81,15 @@ void initialization()
 			
 }
 
-//³õÊ¼»¯×ÅÉ«·½°¸ ½Ó×Å¼ÆËã³õÊ¼·½°¸µÄ³åÍ»Çé¿ö
+//åˆå§‹åŒ–ç€è‰²æ–¹æ¡ˆ æ¥ç€è®¡ç®—åˆå§‹æ–¹æ¡ˆçš„å†²çªæƒ…å†µ
 void Prepare()
 {
-	//½ÚµãËæ»ú×ÅÉ«
-	//POPÊÇ¶àÖÖ·½°¸Í¬Ê±½øĞĞ
+	//èŠ‚ç‚¹éšæœºç€è‰²
+	//POPæ˜¯å¤šç§æ–¹æ¡ˆåŒæ—¶è¿›è¡Œ
 	for (int i = 0; i < POP; ++i)
 		for (int j = 0; j < N; ++j)
 			Color[i][j] = rand() % Colornum;
-	//¼ÆËãÄ¿±êº¯Êı£º³õÊ¼×ÅÉ«·½°¸µÄ³åÍ»¶È £¨ÏàÁÚÇÒÍ¬É«Ôò¼Ó1£©
+	//è®¡ç®—ç›®æ ‡å‡½æ•°ï¼šåˆå§‹ç€è‰²æ–¹æ¡ˆçš„å†²çªåº¦ ï¼ˆç›¸é‚»ä¸”åŒè‰²åˆ™åŠ 1ï¼‰
 	for (int l = 0; l < POP; ++l)
 	{
 		Conflictnum[l] = 0;
@@ -100,12 +100,12 @@ void Prepare()
 	}
 }
 
-//¸ù¾İ10¸ö·½°¸²úÉúĞÂ·½°¸
+//æ ¹æ®10ä¸ªæ–¹æ¡ˆäº§ç”Ÿæ–°æ–¹æ¡ˆ
 void Crossover()
 {
 	int ColorsumA[200], ColorsumB[200];
 	int Sign, SN = 0;
-	int Coloring = 0;//µ±Ç°ÑÕÉ«
+	int Coloring = 0;//å½“å‰é¢œè‰²
 	int A, B;
 	int MaxA, MaxB;
 	int SignA[60], SignB[60];
@@ -119,7 +119,7 @@ void Crossover()
 	}
 	for (i = 0; i < N; ++i)
 		NewColor[i] = -1;
-	//¶à¸ö·½°¸ÌôÑ¡Á½¸ö²»Ò»ÑùµÄ
+	//å¤šä¸ªæ–¹æ¡ˆæŒ‘é€‰ä¸¤ä¸ªä¸ä¸€æ ·çš„
 	while (1)
 	{
 		A = rand() % POP;
@@ -201,7 +201,7 @@ void Crossover()
 		}
 }
 
-//³õÊ¼»¯OPT±í ºÍ Tabu±í
+//åˆå§‹åŒ–OPTè¡¨ å’Œ Tabuè¡¨
 void Clear_And_Prepare()
 {
 	Conflict = 0;
@@ -243,30 +243,30 @@ void Tabu_Search()
 		delta=SP_delta=INF;
 		for (int i=0;i<N;++i)
 			// find one move
-			if (Opt[i][NewColor[i]]!=0) //ÕÒµ½ËùÓĞ³åÍ»µÄ½Úµã ÑÕÉ«
+			if (Opt[i][NewColor[i]]!=0) //æ‰¾åˆ°æ‰€æœ‰å†²çªçš„èŠ‚ç‚¹ é¢œè‰²
 			{   
-				//¶ÔÍ¬Ò»¸ö½Úµã ÕÒµ½ÔöÁ¿×îĞ¡µÄµã
+				//å¯¹åŒä¸€ä¸ªèŠ‚ç‚¹ æ‰¾åˆ°å¢é‡æœ€å°çš„ç‚¹
 				for (int j=0;j<Colornum;++j)
-					if (NewColor[i]!=j) //»»³ÉÁíÒ»¸öÑÕÉ«
+					if (NewColor[i]!=j) //æ¢æˆå¦ä¸€ä¸ªé¢œè‰²
 					{
-						temp=Opt[i][j]-Opt[i][NewColor[i]];  //ÔöÁ¿
-						if (Tabu[i][j]<=Iter3) //²»½û¼É
+						temp=Opt[i][j]-Opt[i][NewColor[i]];  //å¢é‡
+						if (Tabu[i][j]<=Iter3) //ä¸ç¦å¿Œ
 						{
 							if (temp<delta)      
 							{
 								delta=temp;len=0;
-								Vertex[len]=i; //¼ÇÂ¼¸Ä¶¯µÄµã
-								Col[len]=j;    //¼ÇÂ¼¸ÄºóµÄÑÕÉ«
+								Vertex[len]=i; //è®°å½•æ”¹åŠ¨çš„ç‚¹
+								Col[len]=j;    //è®°å½•æ”¹åçš„é¢œè‰²
 								len++;
 							}
-							else if (temp==delta && len<=50) //¶à¸öÏàÍ¬µÄÖµ Ö»¼ÇÂ¼50¸ö
+							else if (temp==delta && len<=50) //å¤šä¸ªç›¸åŒçš„å€¼ åªè®°å½•50ä¸ª
 							{
 								Vertex[len]=i;
 								Col[len]=j;
 								len++;
 							}
 						}
-						else              //½û¼É
+						else              //ç¦å¿Œ
 						{
 							if (temp<SP_delta)
 							{
@@ -284,7 +284,7 @@ void Tabu_Search()
 						}
 					}
 			}
-		//¿ÉÄÜ²»·ûºÏ½û¼É±íµÄÇé¿ö
+		//å¯èƒ½ä¸ç¬¦åˆç¦å¿Œè¡¨çš„æƒ…å†µ
 		if (SP_len>0 && SP_delta<delta && SP_delta+Conflict<Conflict_best)
 		{
 			k=rand()%SP_len;
@@ -298,7 +298,7 @@ void Tabu_Search()
 			Conflict=delta+Conflict;
 		}
 		else return;
-		//¸üĞÂ¸Ä½øºóµÄ½á¹û
+		//æ›´æ–°æ”¹è¿›åçš„ç»“æœ
 		if (Conflict<Conflict_best) 
 		{
 			Conflict_best=Conflict;
@@ -307,20 +307,20 @@ void Tabu_Search()
 				BestColor[i]=NewColor[i];
 		}
 		else Iter++;
-		if (Conflict_best==0)  //²»ĞèÒª¸ÄÁË ÒÑ¾­ÕÒµ½Ò»¸ö×îÓÅ½â
+		if (Conflict_best==0)  //ä¸éœ€è¦æ”¹äº† å·²ç»æ‰¾åˆ°ä¸€ä¸ªæœ€ä¼˜è§£
 		{
 			Colornum--;
 			return;
 		}
-		//ĞŞ¸Äopt±í£¬ĞÂÒ»ÂÖ³¢ÊÔ
+		//ä¿®æ”¹optè¡¨ï¼Œæ–°ä¸€è½®å°è¯•
 		for (i=0;i<Adjaclen[p];i++)
 		{
 			int t=Adjac[p][i];
-			Opt[t][NewColor[p]]--;//ĞŞ¸ÄÓÅ»¯±í ±äÇ°Í¬É«³åÍ» ¶¼¼õ1
-			Opt[t][q]++; //±äºóÍ¬É«³åÍ»¶¼¼Ó1
+			Opt[t][NewColor[p]]--;//ä¿®æ”¹ä¼˜åŒ–è¡¨ å˜å‰åŒè‰²å†²çª éƒ½å‡1
+			Opt[t][q]++; //å˜ååŒè‰²å†²çªéƒ½åŠ 1
 		}
-		Tabu[p][NewColor[p]]=Iter3+rand()%10+1+Conflict; //ĞŞ¸Ä½û¼É±í
-		NewColor[p]=q;//ĞŞ¸ÄÑÕÉ«
+		Tabu[p][NewColor[p]]=Iter3+rand()%10+1+Conflict; //ä¿®æ”¹ç¦å¿Œè¡¨
+		NewColor[p]=q;//ä¿®æ”¹é¢œè‰²
 	}
 }
 
@@ -344,7 +344,7 @@ void Updating_POP()
 		}
 	int k = rand() % Poslen;
 	P = Pos[k];
-	//Ëæ»úÑ¡Ò»¸ö·½°¸ Ê¹ÓÃĞÂ·½°¸¸üĞÂ
+	//éšæœºé€‰ä¸€ä¸ªæ–¹æ¡ˆ ä½¿ç”¨æ–°æ–¹æ¡ˆæ›´æ–°
 	if (Conflict_best <= Maxm)
 	{
 		for (int i = 0; i<N; ++i)
@@ -365,7 +365,7 @@ int main()
 	{
 		start = time(NULL);
 		Iter1++;
-		Prepare(); //Ò»´Î³õÊ¼·½°¸
+		Prepare(); //ä¸€æ¬¡åˆå§‹æ–¹æ¡ˆ
 		Iter2 = 0;
 		while (Iter2 < 1000000)
 		{
@@ -379,29 +379,29 @@ int main()
 				Final_Colornum = Colornum;
 				break;
 			}
-			cout << "µÚ" << Iter2 << "´Î³¢ÊÔÑÕÉ«ÊıÎª£º" << Colornum << endl;
-			fout << "µÚ" << Iter2 << "´Î³¢ÊÔÑÕÉ«ÊıÎª£º" << Colornum << endl;
+			cout << "ç¬¬" << Iter2 << "æ¬¡å°è¯•é¢œè‰²æ•°ä¸ºï¼š" << Colornum << endl;
+			fout << "ç¬¬" << Iter2 << "æ¬¡å°è¯•é¢œè‰²æ•°ä¸ºï¼š" << Colornum << endl;
 			for (int i = 0; i < POP; ++i)
 				cout << Conflictnum[i] << " ";
 			cout << endl;
 			for (i = 0; i < POP; ++i)
 				fout << Conflictnum[i] << " ";
 			fout << endl;
-		//	cout << "×ÓÀà¸²¸ÇÊ§°Ü" << Unsuccess1 << " " << Unsuccess2 << endl;
-		//	fout << "×ÓÀà¸²¸ÇÊ§°Ü" << Unsuccess1 << " " << Unsuccess2 << endl;
+		//	cout << "å­ç±»è¦†ç›–å¤±è´¥" << Unsuccess1 << " " << Unsuccess2 << endl;
+		//	fout << "å­ç±»è¦†ç›–å¤±è´¥" << Unsuccess1 << " " << Unsuccess2 << endl;
 		}
 		stop = time(NULL);
-		cout << "Ê¹ÓÃÊ±¼äÎª" << (stop - start) << "s" << endl;
-		cout << "µ±Ç°ÑÕÉ«Îª" << Final_Colornum + 1 << endl;
-		cout << "×î¼Ñ³åÍ»±ßÊıÎª" << Conflict_best << endl;
+		cout << "ä½¿ç”¨æ—¶é—´ä¸º" << (stop - start) << "s" << endl;
+		cout << "å½“å‰é¢œè‰²ä¸º" << Final_Colornum + 1 << endl;
+		cout << "æœ€ä½³å†²çªè¾¹æ•°ä¸º" << Conflict_best << endl;
 		cout << "***********************************************" << endl;
-		fout << "Ê¹ÓÃÊ±¼äÎª" << (stop - start) << "s" << endl;
-		fout << "µ±Ç°ÑÕÉ«Îª" << Final_Colornum + 1 << endl;
-		fout << "×î¼Ñ³åÍ»±ßÊıÎª" << Conflict_best << endl;
+		fout << "ä½¿ç”¨æ—¶é—´ä¸º" << (stop - start) << "s" << endl;
+		fout << "å½“å‰é¢œè‰²ä¸º" << Final_Colornum + 1 << endl;
+		fout << "æœ€ä½³å†²çªè¾¹æ•°ä¸º" << Conflict_best << endl;
 		fout << "***********************************************" << endl;
 		if (Final_Colornum == 1)
 			break;
 	}
-	cout << "×îÉÙÑÕÉ«ÊıÎª" << Final_Colornum + 1 << endl;
+	cout << "æœ€å°‘é¢œè‰²æ•°ä¸º" << Final_Colornum + 1 << endl;
 	return 0;
 }
